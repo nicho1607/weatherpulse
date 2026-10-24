@@ -25,31 +25,28 @@ export function FavoriteItem({ favorite }: FavoriteItemProps) {
   }
 
   return (
-    <li className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <li className="flex items-center justify-between gap-4 border-t border-rule py-4">
       <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="truncate font-medium text-slate-900 dark:text-slate-100">
-            {favorite.cityName}
+        <p className="display truncate text-4xl text-ink">{favorite.cityName}</p>
+        {(favorite.country || favorite.label) && (
+          <p className="mt-1 text-sm text-muted">
+            {[favorite.country, favorite.label].filter(Boolean).join(", ")}
           </p>
-          {favorite.label && (
-            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700 dark:bg-sky-900/50 dark:text-sky-300">
-              {favorite.label}
-            </span>
-          )}
-        </div>
-        {favorite.country && (
-          <p className="text-sm text-slate-500 dark:text-slate-400">{favorite.country}</p>
         )}
-        {error && <p className="mt-1 text-sm text-rose-600">{error}</p>}
+        {error && (
+          <p role="alert" className="mt-1 text-sm text-danger">
+            {error}
+          </p>
+        )}
       </div>
 
       <button
         type="button"
         onClick={handleRemove}
         disabled={pending}
-        className="shrink-0 rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50 disabled:opacity-60 dark:border-rose-900/60 dark:hover:bg-rose-950/40"
+        className="shrink-0 rounded-md px-3 py-1.5 text-sm font-medium text-danger underline-offset-4 transition-colors hover:underline disabled:opacity-60"
       >
-        {pending ? "Eliminando..." : "Eliminar"}
+        {pending ? "Eliminando…" : "Eliminar"}
       </button>
     </li>
   );

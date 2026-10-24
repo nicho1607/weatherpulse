@@ -27,7 +27,7 @@ export async function AuthButton() {
       >
         <button
           type="submit"
-          className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+          className="rounded-md bg-ink px-3 py-1.5 text-sm font-medium text-canvas transition-opacity hover:opacity-85"
         >
           Iniciar sesión con GitHub
         </button>
@@ -51,7 +51,7 @@ export async function AuthButton() {
           />
         )}
         {name && (
-          <span className="hidden max-w-[10rem] truncate text-sm font-medium text-slate-700 sm:inline dark:text-slate-300">
+          <span className="hidden max-w-[10rem] truncate text-sm text-muted sm:inline">
             {name}
           </span>
         )}
@@ -64,7 +64,7 @@ export async function AuthButton() {
       >
         <button
           type="submit"
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+          className="rounded-md border border-rule px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-surface"
         >
           Cerrar sesión
         </button>

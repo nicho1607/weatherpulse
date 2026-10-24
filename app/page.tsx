@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 import { SearchBar } from "@/components/search-bar";
@@ -53,43 +52,21 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center gap-8 px-4 py-10 sm:py-16">
-      <header className="w-full text-center">
-        <h1 className="bg-gradient-to-r from-sky-500 to-indigo-600 bg-clip-text text-4xl font-bold text-transparent sm:text-5xl">
-          WeatherPulse
-        </h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">
-          Clima en tiempo real y pronóstico a 5 días.
-        </p>
-        <nav className="mt-4">
-          <Link
-            href="/favorites"
-            className="text-sm font-medium text-sky-600 hover:underline dark:text-sky-400"
-          >
-            Ver favoritos →
-          </Link>
-        </nav>
-      </header>
-
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-12 px-4 pb-20 pt-10 sm:px-6 sm:pt-16">
+      <h1 className="sr-only">WeatherPulse</h1>
       <SearchBar onSelect={handleSelect} />
 
-      <div className="flex w-full flex-col items-center">
+      <div aria-live="polite" className="w-full">
         {status === "loading" && <WeatherSkeleton />}
 
         {status === "error" && errorMessage && (
-          <div className="w-full max-w-md rounded-2xl border border-rose-200 bg-rose-50 p-4 text-center text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300">
+          <p role="alert" className="border-l-2 border-danger pl-3 text-danger">
             {errorMessage}
-          </div>
+          </p>
         )}
 
         {status === "success" && weather && coords && (
           <WeatherCard data={weather} coords={coords} />
-        )}
-
-        {status === "idle" && (
-          <p className="text-center text-slate-500 dark:text-slate-400">
-            Busca una ciudad para ver su clima.
-          </p>
         )}
       </div>
     </main>

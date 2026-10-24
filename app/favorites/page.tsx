@@ -15,28 +15,24 @@ export default async function FavoritesPage() {
   const favorites = await getFavorites();
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-10 sm:py-16">
-      <header className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-          Favoritos
-        </h1>
-        <Link
-          href="/"
-          className="text-sm font-medium text-sky-600 hover:underline dark:text-sky-400"
-        >
-          ← Volver
-        </Link>
-      </header>
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 pb-20 pt-10 sm:px-6 sm:pt-16">
+      <h1 className="display text-[clamp(2.75rem,9vw,5.5rem)] text-ink">Favoritos</h1>
 
       {favorites.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
-          <p className="font-medium">Aún no tienes ciudades favoritas.</p>
-          <p className="mt-1 text-sm">
-            Inicia sesión y guarda ciudades desde la página principal.
+        <div className="mt-8 max-w-prose border-t border-rule pt-6">
+          <p className="text-lg font-semibold text-ink">Aún no tienes ciudades favoritas.</p>
+          <p className="mt-1 text-muted">
+            Inicia sesión con GitHub, busca una ciudad y usa «Guardar en favoritos».
           </p>
+          <Link
+            href="/"
+            className="mt-5 inline-block rounded-md bg-ink px-4 py-2 text-sm font-medium text-canvas transition-opacity hover:opacity-85"
+          >
+            Buscar una ciudad
+          </Link>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="mt-8 max-w-3xl border-b border-rule">
           {favorites.map((favorite) => (
             <FavoriteItem key={favorite.id} favorite={favorite} />
           ))}

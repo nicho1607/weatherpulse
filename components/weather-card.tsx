@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type CSSProperties } from "react";
 
 import { addFavorite } from "@/actions/favorites";
+import { temperatureColors } from "@/lib/temperature";
 import type { WeatherData } from "@/types/weather";
 
 interface WeatherCardProps {
@@ -15,7 +16,12 @@ const dayFormatter = new Intl.DateTimeFormat("es", { weekday: "short" });
 
 function formatDay(dateString: string): string {
   const date = new Date(`${dateString}T00:00:00`);
-  return dayFormatter.format(date);
+  return dayFormatter.format(date).replace(".", "");
+}
+
+function tempVars(celsius: number): CSSProperties {
+  const { light, dark } = temperatureColors(celsius);
+  return { "--t-light": light, "--t-dark": dark } as CSSProperties;
 }
 
 export function WeatherCard({ data, coords, isFavorite = false }: WeatherCardProps) {
@@ -34,66 +40,133 @@ export function WeatherCard({ data, coords, isFavorite = false }: WeatherCardPro
         });
         setSaved(true);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "No se pudo guardar");
+        const message = err instanceof Error ? err.message : "";
+        setError(
+          message === "No autenticado"
+            ? "Inicia sesión con GitHub para guardar favoritos."
+            : "No se pudo guardar. Inténtalo de nuevo.",
+        );
       }
     });
   }
 
-  return (
-    <article className="w-full max-w-md rounded-3xl bg-gradient-to-br from-sky-500 to-indigo-600 p-6 text-white shadow-xl">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold">{data.city}</h2>
-          <p className="text-sky-100">{data.current.condition}</p>
-        </div>
-        <button
-          type="button"
-          onClick={handleFavorite}
-          disabled={pending || saved}
-          aria-pressed={saved}
-          aria-label={saved ? "Ciudad en favoritos" : "Agregar a favoritos"}
-          className="rounded-full bg-white/15 p-2 text-xl leading-none transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {saved ? "★" : "☆"}
-        </button>
-      </header>
+  // Shared scale across all days so the range bars are comparable.
+  const lows = data.forecast.map((day) => day.minTemp);
+  const highs = data.forecast.map((day) => day.maxTemp);
+  const scaleMin = Math.floor(Math.min(...lows));
+  const scaleMax = Math.ceil(Math.max(...highs));
+  const span = Math.max(scaleMax - scaleMin, 1);
 
-      <div className="mt-4 flex items-end gap-2">
-        <span className="text-6xl font-bold">{Math.round(data.current.temperature)}°</span>
+  return (
+    <article className="grid w-full gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:items-start">
+      <div>
+        <h2 className="sr-only">Clima en {data.city}</h2>
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+          <p className="text-xl font-semibold text-ink">{data.current.condition}</p>
+          <button
+            type="button"
+            onClick={handleFavorite}
+            disabled={pending || saved}
+            aria-pressed={saved}
+            className="inline-flex items-center gap-2 rounded-md border border-rule px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-surface disabled:cursor-default disabled:hover:bg-transparent"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill={saved ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            >
+              <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />
+            </svg>
+            {saved ? "Guardada en favoritos" : pending ? "Guardando…" : "Guardar en favoritos"}
+          </button>
+        </div>
+
+        <p
+          className="display temp-ink mt-2 text-[clamp(8rem,30vw,13rem)] leading-[0.85]"
+          style={tempVars(data.current.temperature)}
+        >
+          {Math.round(data.current.temperature)}°
+        </p>
+
+        <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-2 text-ink">
+          <div className="flex items-baseline gap-2">
+            <dt className="text-sm text-muted">Humedad</dt>
+            <dd className="font-semibold tabular-nums">{data.current.humidity} %</dd>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <dt className="text-sm text-muted">Viento</dt>
+            <dd className="font-semibold tabular-nums">
+              {Math.round(data.current.windSpeed)} km/h
+            </dd>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <dt className="text-sm text-muted">Índice UV</dt>
+            <dd className="font-semibold tabular-nums">{Math.round(data.current.uvIndex)}</dd>
+          </div>
+        </dl>
+
+        {error && (
+          <p role="alert" className="mt-4 border-l-2 border-danger pl-3 text-sm text-danger">
+            {error}
+          </p>
+        )}
       </div>
 
-      <dl className="mt-6 grid grid-cols-3 gap-3 text-center text-sm">
-        <div className="rounded-2xl bg-white/10 p-3">
-          <dt className="text-sky-100">Humedad</dt>
-          <dd className="mt-1 font-semibold">{data.current.humidity}%</dd>
-        </div>
-        <div className="rounded-2xl bg-white/10 p-3">
-          <dt className="text-sky-100">Viento</dt>
-          <dd className="mt-1 font-semibold">{Math.round(data.current.windSpeed)} km/h</dd>
-        </div>
-        <div className="rounded-2xl bg-white/10 p-3">
-          <dt className="text-sky-100">UV</dt>
-          <dd className="mt-1 font-semibold">{Math.round(data.current.uvIndex)}</dd>
-        </div>
-      </dl>
+      <section className="lg:pt-1">
+        <h3 className="text-lg font-semibold text-ink">Próximos 5 días</h3>
+        <ul className="mt-3">
+          {data.forecast.map((day, index) => {
+            const from = temperatureColors(day.minTemp);
+            const to = temperatureColors(day.maxTemp);
+            const left = ((day.minTemp - scaleMin) / span) * 100;
+            const width = Math.max(((day.maxTemp - day.minTemp) / span) * 100, 2);
 
-      <section className="mt-6">
-        <h3 className="mb-2 text-sm font-medium text-sky-100">Pronóstico a 5 días</h3>
-        <ul className="grid grid-cols-5 gap-2 text-center text-xs">
-          {data.forecast.map((day) => (
-            <li key={day.date} className="rounded-2xl bg-white/10 p-2">
-              <p className="font-medium capitalize">{formatDay(day.date)}</p>
-              <p className="mt-1 font-semibold">{Math.round(day.maxTemp)}°</p>
-              <p className="text-sky-200">{Math.round(day.minTemp)}°</p>
-            </li>
-          ))}
+            return (
+              <li
+                key={day.date}
+                className="grid grid-cols-[minmax(6rem,1fr)_2.5rem_minmax(0,2fr)_2.5rem] items-center gap-x-3 border-t border-rule py-3 sm:grid-cols-[4rem_minmax(0,1fr)_2.5rem_minmax(0,1.5fr)_2.5rem]"
+              >
+                <div className="sm:contents">
+                  <p className="font-semibold capitalize text-ink">
+                    {index === 0 ? "Hoy" : formatDay(day.date)}
+                  </p>
+                  <p className="truncate text-sm text-muted" title={day.condition}>
+                    {day.condition}
+                  </p>
+                </div>
+                <p className="text-right tabular-nums text-muted">
+                  <span className="sr-only">Mínima </span>
+                  {Math.round(day.minTemp)}°
+                </p>
+                <div aria-hidden="true" className="relative h-1.5 rounded-full bg-rule">
+                  <div
+                    className="range-fill absolute inset-y-0 rounded-full"
+                    style={
+                      {
+                        left: `${left}%`,
+                        width: `${width}%`,
+                        "--from-light": from.light,
+                        "--from-dark": from.dark,
+                        "--to-light": to.light,
+                        "--to-dark": to.dark,
+                        "--i": index,
+                      } as CSSProperties
+                    }
+                  />
+                </div>
+                <p className="font-semibold tabular-nums text-ink">
+                  <span className="sr-only">Máxima </span>
+                  {Math.round(day.maxTemp)}°
+                </p>
+              </li>
+            );
+          })}
         </ul>
       </section>
-
-      {error && <p className="mt-4 text-sm text-rose-100">{error}</p>}
-      {saved && !error && (
-        <p className="mt-4 text-sm text-sky-100">Guardada en favoritos</p>
-      )}
     </article>
   );
 }
